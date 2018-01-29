@@ -1,11 +1,34 @@
 ﻿  Moc'ing OccDocQt.h...
   Uic'ing OccDocQt.ui...
-  Rcc'ing OccDocQt.qrc...
-RCC : warning : No resources in 'E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\OccDocQt\OccDocQt.qrc'.
-  
-  qrc_OccDocQt.cpp
+  Moc'ing Translate.h...
+  Moc'ing ApplicationCommonWindow.h...
+  Moc'ing ApplicationWindow.h...
+  Moc'ing DocumentCommon.h...
+  Moc'ing DialogTransparency.h...
+  Moc'ing DialogMaterial.h...
+  ApplicationCommonWindow.cpp
+  ApplicationWindow.cpp
+  DialogMaterial.cpp
+  DialogTransparency.cpp
+  DocumentCommon.cpp
+  moc_ApplicationCommonWindow.cpp
+  moc_ApplicationWindow.cpp
+  moc_DialogMaterial.cpp
+  moc_DialogTransparency.cpp
+  moc_DocumentCommon.cpp
   moc_OccDocQt.cpp
+  moc_Translate.cpp
   main.cpp
   OccDocQt.cpp
+  OcctWindow.cpp
+  Translate.cpp
+  View.cpp
   正在生成代码...
-  OccDocQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\OccDocQt.exe
+    正在创建库 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\OccDocQt.lib 和对象 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\OccDocQt.exp
+DocumentCommon.obj : error LNK2019: 无法解析的外部符号 "public: char16_t const * __cdecl TCollection_ExtendedString::ToExtString(void)const " (?ToExtString@TCollection_ExtendedString@@QEBAPEB_SXZ)，该符号在函数 "public: __cdecl DocumentCommon::DocumentCommon(int,class ApplicationCommonWindow *)" (??0DocumentCommon@@QEAA@HPEAVApplicationCommonWindow@@@Z) 中被引用
+View.obj : error LNK2001: 无法解析的外部符号 "public: virtual struct QMetaObject const * __cdecl View::metaObject(void)const " (?metaObject@View@@UEBAPEBUQMetaObject@@XZ)
+View.obj : error LNK2001: 无法解析的外部符号 "public: virtual void * __cdecl View::qt_metacast(char const *)" (?qt_metacast@View@@UEAAPEAXPEBD@Z)
+View.obj : error LNK2001: 无法解析的外部符号 "public: virtual int __cdecl View::qt_metacall(enum QMetaObject::Call,int,void * *)" (?qt_metacall@View@@UEAAHW4Call@QMetaObject@@HPEAPEAX@Z)
+View.obj : error LNK2019: 无法解析的外部符号 "public: void __cdecl View::selectionChanged(void)" (?selectionChanged@View@@QEAAXXZ)，该符号在函数 "private: void __cdecl View::DragEvent(int,int,int)" (?DragEvent@View@@AEAAXHHH@Z) 中被引用
+View.obj : error LNK2019: 无法解析的外部符号 "public: static struct QMetaObject const View::staticMetaObject" (?staticMetaObject@View@@2UQMetaObject@@B)，该符号在函数 "public: static class QString __cdecl View::tr(char const *,char const *,int)" (?tr@View@@SA?AVQString@@PEBD0H@Z) 中被引用
+E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\\OccDocQt.exe : fatal error LNK1120: 6 个无法解析的外部命令
