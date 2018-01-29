@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Qt Log
+*.tlog
+
+# Compiled Files
+*.ilk
+*.pdb
+*.exp
