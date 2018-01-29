@@ -19,8 +19,7 @@
 // function : Viewer
 // purpose  :
 // =======================================================================
-Handle(V3d_Viewer) DocumentCommon::Viewer(const Standard_ExtString,
-	const Standard_CString,
+Handle(V3d_Viewer) DocumentCommon::Viewer(
 	const Standard_Real theViewSize,
 	const V3d_TypeOfOrientation theViewProj,
 	const Standard_Boolean theComputedMode,
@@ -51,9 +50,8 @@ DocumentCommon::DocumentCommon(const int theIndex, ApplicationCommonWindow* app)
 	myIndex(theIndex),
 	myNbViews(0)
 {
-	TCollection_ExtendedString a3DName("Visu3D");
 
-	myViewer = Viewer(a3DName.ToExtString(), "", 1000.0, V3d_XposYnegZpos, Standard_True, Standard_True);
+	myViewer = Viewer(1000.0, V3d_XposYnegZpos, Standard_True, Standard_True);
 
 	myViewer->SetDefaultLights();
 	myViewer->SetLightOn();

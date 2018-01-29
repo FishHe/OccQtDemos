@@ -46,8 +46,7 @@ signals:
 	void                           onTransparency(int);
 
 private:
-	Handle(V3d_Viewer)             Viewer(const Standard_ExtString theName,
-		const Standard_CString theDomain,
+	Handle(V3d_Viewer)             Viewer(
 		const Standard_Real theViewSize,
 		const V3d_TypeOfOrientation theViewProj,
 		const Standard_Boolean theComputedMode,
