@@ -29,7 +29,7 @@ OccWidget::OccWidget(Handle(AIS_InteractiveContext) aContext, QWidget* parent)
 	//bind occ window to the view
 	myView->SetWindow(hWnd);
 
-	myView->SetBackgroundColor(Quantity_NOC_BLUE1);
+	myView->SetBackgroundColor(Quantity_NOC_BLACK);
 	myView->MustBeResized();
 
 	//auto button = new QPushButton(this);
