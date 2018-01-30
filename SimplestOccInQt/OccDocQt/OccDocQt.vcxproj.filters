@@ -170,12 +170,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="OccDocQt.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="occdocqt_zh.ts">
-      <Filter>Translation Files</Filter>
-    </None>
-  </ItemGroup>
 </Project>

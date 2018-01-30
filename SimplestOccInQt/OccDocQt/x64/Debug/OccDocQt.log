@@ -1,22 +1,3 @@
-﻿  ApplicationCommonWindow.cpp
-  ApplicationWindow.cpp
-  DialogMaterial.cpp
-  DialogTransparency.cpp
-  DocumentCommon.cpp
-  moc_ApplicationCommonWindow.cpp
-  moc_ApplicationWindow.cpp
-  moc_DialogMaterial.cpp
-  moc_DialogTransparency.cpp
-  moc_DocumentCommon.cpp
-  moc_OccDocQt.cpp
-  moc_Translate.cpp
-  moc_View.cpp
-  main.cpp
-  OccDocQt.cpp
-  OcctWindow.cpp
-  Translate.cpp
-  View.cpp
-  正在生成代码...
-qtmaind.lib(qtmain_win.obj) : error LNK2038: 检测到“_MSC_VER”的不匹配项:  值“1900”不匹配值“1800”(ApplicationCommonWindow.obj 中)
-     正在创建库 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\OccDocQt.lib 和对象 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\OccDocQt.exp
-E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\\OccDocQt.exe : fatal error LNK1319: 检测到 1 个不匹配项
+﻿  Translate.cpp
+  OccDocQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\OccDocQt.exe
+  OccDocQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\OccDocQt.pdb (Full PDB)

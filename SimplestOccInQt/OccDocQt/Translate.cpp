@@ -327,8 +327,29 @@ TranslateDlg* Translate::getDialog(const int format, const bool import)
 	if (format < 0)
 		return myDlg;
 
-	QString formatFilter = QObject::tr(QString("INF_FILTER_FORMAT_%1").arg(format).toLatin1().constData());
-	QString allFilter = QObject::tr("INF_FILTER_FORMAT_ALL");
+	//format filter
+	QString formatFilter = QString();
+	switch (format)
+	{
+	case 0:
+		formatFilter = QString("BREP Files (*.brep *.rle)");
+		break;
+	case 1:
+		formatFilter = QString("IGES Files (*.igs *.iges)");
+		break;
+	case 2:
+		formatFilter = QString("STEP Files (*.stp *.step)");
+		break;
+	case 3:
+		formatFilter = QString("VRML Files (*.vrml)");
+		break;
+	case 4:
+		formatFilter = QString("STL Files (*.stl)");
+		break;
+	default:
+		break;
+	}
+	QString allFilter = QString("All Files (*.*)");
 
 	QString filter;
 	filter.append(formatFilter);
@@ -342,6 +363,9 @@ TranslateDlg* Translate::getDialog(const int format, const bool import)
 
 	cout << filter.toLatin1().constData() << endl;
 	QStringList filters = filter.split("\t");
+	filters.removeLast();
+
+
 	myDlg->setNameFilters(filters);
 
 	if (import)
