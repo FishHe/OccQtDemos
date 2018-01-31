@@ -6,6 +6,7 @@
 
 #include <AIS_InteractiveContext.hxx>
 #include <V3d_View.hxx>
+#include <AIS_Shape.hxx>
 
 class TopoDS_Shape;
 class QRubberBand;
@@ -19,7 +20,8 @@ protected:
 	enum CurrentAction3d {
 		CurAction3d_Nothing, CurAction3d_DynamicZooming,
 		CurAction3d_WindowZooming, CurAction3d_DynamicPanning,
-		CurAction3d_GlobalPanning, CurAction3d_DynamicRotation
+		CurAction3d_GlobalPanning, CurAction3d_DynamicRotation,
+		CurrentAction3d_DrawLine, CurrentAction3d_DrawPoint
 	};
 
 public:
@@ -29,6 +31,11 @@ public:
 		ViewAxoId, ViewRotationId, ViewResetId, ViewHlrOffId, ViewHlrOnId
 	};
 	enum RaytraceAction { ToolRaytracingId, ToolShadowsId, ToolReflectionsId, ToolAntialiasingId };
+
+	enum DrawAction
+	{
+		DrawLineId,DrawPiontId
+	};
 
 	View(Handle(AIS_InteractiveContext) theContext, QWidget* parent);
 
@@ -91,6 +98,10 @@ signals:
 	void                          onEnvironmentMap();
 	void                          onRaytraceAction();
 
+
+	void						  drawLine();
+	void						  drawPoint();
+
 protected:
 	virtual void                  paintEvent(QPaintEvent*);
 	virtual void                  resizeEvent(QResizeEvent*);
@@ -127,6 +138,7 @@ private:
 	void                          DrawRectangle(const int MinX, const int MinY,
 		const int MaxX, const int MaxY, const bool Draw);
 
+	void initDrawActions();
 private:
 	bool                            myIsRaytracing;
 	bool                            myIsShadowsEnabled;
@@ -137,15 +149,18 @@ private:
 	Handle(V3d_View)                myView;
 	Handle(AIS_InteractiveContext)  myContext;
 	CurrentAction3d                 myCurrentMode;
-	Standard_Integer                myXmin;
-	Standard_Integer                myYmin;
-	Standard_Integer                myXmax;
-	Standard_Integer                myYmax;
+	Standard_Integer                myXmin;			//mouse point x when button down
+	Standard_Integer                myYmin;			//mouse point y when button down
+	Standard_Integer                myXmax;			//mouse point x when button up and mouse move
+	Standard_Integer                myYmax;			//mouse point y when button up and mouse move
 	Standard_Real                   myCurZoom;
 	Standard_Boolean                myHlrModeIsOn;
 	QList<QAction*>*                myViewActions;
 	QList<QAction*>*                myRaytraceActions;
+	QList<QAction*>*                myDrawActions;
 	QMenu*                          myBackMenu;
 	QRubberBand*                    myRectBand; //!< selection rectangle rubber band
+
+	Handle(AIS_Shape)				myCurrentShape;	//drawing shape
 };
 

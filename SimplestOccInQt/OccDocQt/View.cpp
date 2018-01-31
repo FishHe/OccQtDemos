@@ -16,9 +16,14 @@
 #include <Graphic3d_ExportFormat.hxx>
 #include <Graphic3d_GraphicDriver.hxx>
 #include <Graphic3d_TextureEnv.hxx>
+#include <Aspect_DisplayConnection.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <AIS_Trihedron.hxx>
+#include <Geom_Axis2Placement.hxx>
+#include <AIS_Point.hxx>
+#include <Geom_CartesianPoint.hxx>
 
 #include <OcctWindow.h>
-#include <Aspect_DisplayConnection.hxx>
 
 
 // the key for multi selection :
@@ -67,6 +72,7 @@ View::View(Handle(AIS_InteractiveContext) theContext, QWidget* parent)
 	setMouseTracking(true);
 
 	initViewActions();
+	initDrawActions();
 	initCursors();
 
 	setBackgroundRole(QPalette::NoRole);//NoBackground );
@@ -98,6 +104,18 @@ void View::init()
 
 	if (myIsRaytracing)
 		myView->ChangeRenderingParams().Method = Graphic3d_RM_RAYTRACING;
+	
+	Handle(Geom_Axis2Placement) gAx2 = new Geom_Axis2Placement(gp_Ax2(gp_Pnt(0,0,0),gp_Dir(0,0,1),gp_Dir(1,0,0)));
+	Handle(AIS_Trihedron) anAISTr = new AIS_Trihedron(gAx2);
+
+	anAISTr->SetXAxisColor(Quantity_NOC_RED);
+	anAISTr->SetYAxisColor(Quantity_NOC_GREEN);
+	anAISTr->SetAxisColor(Quantity_NOC_BLUE1);
+	anAISTr->SetSize(500);
+
+	anAISTr->SetTextColor(Quantity_NOC_WHITE);
+	
+	myContext->Display(anAISTr, true);
 }
 
 void View::paintEvent(QPaintEvent *)
@@ -208,6 +226,16 @@ void View::hlrOn()
 	myView->SetComputedMode(myHlrModeIsOn);
 	myView->Redraw();
 	QApplication::restoreOverrideCursor();
+}
+
+void View::drawLine()
+{
+	myCurrentMode = CurrentAction3d_DrawLine;
+}
+
+void View::drawPoint()
+{
+	myCurrentMode = CurrentAction3d_DrawPoint;
 }
 
 void View::SetRaytracedShadows(bool theState)
@@ -496,6 +524,8 @@ void View::initViewActions()
 	a->setCheckable(true);
 	ag->addAction(a);
 	myViewActions->insert(ViewHlrOnId, a);
+
+
 }
 
 void View::initRaytraceActions()
@@ -628,6 +658,42 @@ void View::onLButtonDown(const int/*Qt::MouseButtons*/ nFlags, const QPoint poin
 			}
 			myView->StartRotation(point.x(), point.y());
 			break;
+		case CurrentAction3d_DrawLine:
+		{
+			//Standard_Real X, Y, Z, Vx, Vy, Vz;
+			//myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
+			//Standard_Real t = 0;
+
+			//Standard_Real XPoint, YPoint, ZPoint;
+			//ZPoint = 0;
+			//if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			//XPoint = X + t*Vx;
+			//YPoint = Y + t*Vy;
+
+			//TopoDS_Shape aLine = BRepBuilderAPI_MakeEdge(
+			//	gp_Pnt(XPoint, YPoint, ZPoint), gp_Pnt(XPoint, YPoint, ZPoint+1));
+			////记录当前绘制的图形
+			//myCurrentShape = new AIS_Shape(aLine);
+			//myContext->Display(myCurrentShape, true);
+		}
+			break;
+		case CurrentAction3d_DrawPoint:
+		{
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint,ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			Handle(Geom_Point) anGPnt = new Geom_CartesianPoint(gp_Pnt(XPoint, YPoint, ZPoint));
+			Handle(AIS_Point) anAISPnt = new AIS_Point(anGPnt);
+			myContext->Display(anAISPnt, true);
+		}
+			break;
 		default:
 			throw Standard_Failure("incompatible Current Mode");
 			break;
@@ -714,6 +780,14 @@ void View::onLButtonUp(Qt::MouseButtons nFlags, const QPoint point)
 		myCurrentMode = CurAction3d_Nothing;
 		noActiveActions();
 		break;
+	case CurrentAction3d_DrawLine:
+	{
+		myCurrentShape = NULL;
+		noActiveActions();
+	}
+	break;
+	case CurrentAction3d_DrawPoint:
+		break;
 	default:
 		throw Standard_Failure(" incompatible Current Mode ");
 		break;
@@ -785,6 +859,40 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 		case CurAction3d_DynamicRotation:
 			myView->Rotation(point.x(), point.y());
 			myView->Redraw();
+			break;
+		case CurrentAction3d_DrawLine:
+		{
+			if (!myCurrentShape.IsNull()) myContext->Remove(myCurrentShape, true);
+			myXmax = point.x();
+			myYmax = point.y();
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+			Standard_Real XPoint1, YPoint1, ZPoint1;
+			ZPoint1 = 0;
+			if (Vz != ZPoint1) t = (ZPoint1 - Z) / Vz;
+			XPoint1 = X + t*Vx;
+			YPoint1 = Y + t*Vy;
+
+			X = 0, Y = 0, Z = 0, Vx = 0, Vy = 0, Vz = 0;
+			myView->ConvertWithProj(myXmax, myYmax, X, Y, Z, Vx, Vy, Vz);
+			t = 0;
+			Standard_Real XPoint2, YPoint2, ZPoint2;
+			ZPoint2 = 0;
+			if (Vz != ZPoint2) t = (ZPoint2 - Z) / Vz;
+			XPoint2 = X + t*Vx;
+			YPoint2 = Y + t*Vy;
+
+			if (XPoint1 != XPoint2 || YPoint1 != YPoint2 || ZPoint1 != ZPoint2)
+			{
+				TopoDS_Shape aLine = BRepBuilderAPI_MakeEdge(
+					gp_Pnt(XPoint1, YPoint1, ZPoint1), gp_Pnt(XPoint2, YPoint2, ZPoint2));
+				myCurrentShape = new AIS_Shape(aLine);
+				myContext->Display(myCurrentShape, true);
+			}
+		}
+			break;
+		case CurrentAction3d_DrawPoint:
 			break;
 		default:
 			throw Standard_Failure("incompatible Current Mode");
@@ -964,6 +1072,30 @@ void View::DrawRectangle(const int MinX, const int MinY,
 		//myRectBand->show();
 	}
 }
+
+//create draw actions
+void View::initDrawActions()
+{
+	OccDocQt * parentOccDocQt = (OccDocQt *)((QFrame *)parent()->parent());
+	QToolBar* aToolBar = parentOccDocQt->addToolBar(tr("Draw Optiongs"));
+	myDrawActions = new QList<QAction*>();
+
+	QAction* aAction;
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWLINE")), QObject::tr("MNU_TOOL_DRAWLINE"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWLINE"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWLINE"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawLine()));
+	myDrawActions->insert(DrawLineId, aAction);
+
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWPOINT")), QObject::tr("MNU_TOOL_DRAWPOINT"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWPOINT"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWPOINT"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawPoint()));
+	myDrawActions->insert(DrawLineId, aAction);
+
+	aToolBar->addActions(*myDrawActions);
+}
+
 
 void View::noActiveActions()
 {
