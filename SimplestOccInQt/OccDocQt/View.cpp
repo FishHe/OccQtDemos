@@ -18,6 +18,7 @@
 #include <Graphic3d_TextureEnv.hxx>
 #include <Aspect_DisplayConnection.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepPrimAPI_MakeBox.hxx>
 #include <AIS_Trihedron.hxx>
 #include <Geom_Axis2Placement.hxx>
 #include <AIS_Point.hxx>
@@ -236,6 +237,11 @@ void View::drawLine()
 void View::drawPoint()
 {
 	myCurrentMode = CurrentAction3d_DrawPoint;
+}
+
+void View::drawCube()
+{
+	myCurrentMode = CurrentAction3d_DrawCube0;
 }
 
 void View::SetRaytracedShadows(bool theState)
@@ -570,6 +576,35 @@ void View::initRaytraceActions()
 	myRaytraceActions->insert(ToolAntialiasingId, a);
 }
 
+//create draw actions
+void View::initDrawActions()
+{
+	OccDocQt * parentOccDocQt = (OccDocQt *)((QFrame *)parent()->parent());
+	QToolBar* aToolBar = parentOccDocQt->addToolBar(tr("Draw Optiongs"));
+	myDrawActions = new QList<QAction*>();
+
+	QAction* aAction;
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWLINE")), QObject::tr("MNU_TOOL_DRAWLINE"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWLINE"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWLINE"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawLine()));
+	myDrawActions->insert(DrawLineId, aAction);
+
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWPOINT")), QObject::tr("MNU_TOOL_DRAWPOINT"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWPOINT"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWPOINT"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawPoint()));
+	myDrawActions->insert(DrawLineId, aAction);
+
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWCUBE")), QObject::tr("MNU_TOOL_DRAWCUBE"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWCUBE"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWCUBE"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawCube()));
+	myDrawActions->insert(DrawLineId, aAction);
+
+	aToolBar->addActions(*myDrawActions);
+}
+
 void View::mousePressEvent(QMouseEvent* e)
 {
 	if (e->button() == Qt::LeftButton)
@@ -659,23 +694,6 @@ void View::onLButtonDown(const int/*Qt::MouseButtons*/ nFlags, const QPoint poin
 			myView->StartRotation(point.x(), point.y());
 			break;
 		case CurrentAction3d_DrawLine:
-		{
-			//Standard_Real X, Y, Z, Vx, Vy, Vz;
-			//myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
-			//Standard_Real t = 0;
-
-			//Standard_Real XPoint, YPoint, ZPoint;
-			//ZPoint = 0;
-			//if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
-			//XPoint = X + t*Vx;
-			//YPoint = Y + t*Vy;
-
-			//TopoDS_Shape aLine = BRepBuilderAPI_MakeEdge(
-			//	gp_Pnt(XPoint, YPoint, ZPoint), gp_Pnt(XPoint, YPoint, ZPoint+1));
-			////记录当前绘制的图形
-			//myCurrentShape = new AIS_Shape(aLine);
-			//myContext->Display(myCurrentShape, true);
-		}
 			break;
 		case CurrentAction3d_DrawPoint:
 		{
@@ -692,6 +710,45 @@ void View::onLButtonDown(const int/*Qt::MouseButtons*/ nFlags, const QPoint poin
 			Handle(Geom_Point) anGPnt = new Geom_CartesianPoint(gp_Pnt(XPoint, YPoint, ZPoint));
 			Handle(AIS_Point) anAISPnt = new AIS_Point(anGPnt);
 			myContext->Display(anAISPnt, true);
+		}
+			break;
+		case CurrentAction3d_DrawCube0:
+		{
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			myCubePnt1 = gp_Pnt(XPoint, YPoint, ZPoint);
+		}
+			break;
+		case CurrentAction3d_DrawCube1:
+		{
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			XPoint = XPoint == myCubePnt1.X() ? XPoint + FLT_EPSILON : XPoint;
+			YPoint = YPoint == myCubePnt1.Y() ? YPoint + FLT_EPSILON : YPoint;
+			ZPoint = ZPoint == myCubePnt1.Z() ? ZPoint + FLT_EPSILON : ZPoint;
+
+			myCubePnt2 =gp_Pnt(XPoint, YPoint, ZPoint);
+		}
+			break;
+		case CurrentAction3d_DrawCube2:
+		{
+			
 		}
 			break;
 		default:
@@ -787,6 +844,19 @@ void View::onLButtonUp(Qt::MouseButtons nFlags, const QPoint point)
 	}
 	break;
 	case CurrentAction3d_DrawPoint:
+		break;
+	case CurrentAction3d_DrawCube0:
+		myCurrentMode = CurrentAction3d_DrawCube1;
+		break;
+	case CurrentAction3d_DrawCube1:
+		myCurrentMode = CurrentAction3d_DrawCube2;
+		break;
+	case CurrentAction3d_DrawCube2:
+	{
+		myCurrentMode = CurAction3d_Nothing;
+		myCurrentShape = NULL;
+		noActiveActions();
+	}
 		break;
 	default:
 		throw Standard_Failure(" incompatible Current Mode ");
@@ -894,6 +964,12 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 			break;
 		case CurrentAction3d_DrawPoint:
 			break;
+		case CurrentAction3d_DrawCube0:
+			break;
+		case CurrentAction3d_DrawCube1:
+			break;
+		case CurrentAction3d_DrawCube2:
+			break;
 		default:
 			throw Standard_Failure("incompatible Current Mode");
 			break;
@@ -907,6 +983,78 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 			MultiMoveEvent(point.x(), point.y());
 		else
 			MoveEvent(point.x(), point.y());
+		switch (myCurrentMode)
+		{
+		case View::CurrentAction3d_DrawCube0:
+			break;
+		case View::CurrentAction3d_DrawCube1:
+		{
+			if (!myCurrentShape.IsNull()) myContext->Remove(myCurrentShape, true);
+			myXmax = point.x();
+			myYmax = point.y();
+
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmax, myYmax, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			XPoint = XPoint == myCubePnt1.X() ? XPoint + FLT_EPSILON : XPoint;
+			YPoint = YPoint == myCubePnt1.Y() ? YPoint + FLT_EPSILON : YPoint;
+			ZPoint = ZPoint == myCubePnt1.Z() ? ZPoint + FLT_EPSILON : ZPoint;
+
+			myCubePnt2 = gp_Pnt(XPoint, YPoint, ZPoint);
+
+			TopoDS_Shape aBox = BRepPrimAPI_MakeBox(myCubePnt1, myCubePnt2);
+			myCurrentShape = new AIS_Shape(aBox);
+			
+			myContext->Display(myCurrentShape, true);
+			myContext->Deactivate(myCurrentShape);
+		}
+			break;
+		case View::CurrentAction3d_DrawCube2:
+		{
+			if (!myCurrentShape.IsNull()) myContext->Remove(myCurrentShape, true);
+			myXmax = point.x();
+			myYmax = point.y();
+
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmax, myYmax, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			//current cursor proj to the ref plane
+			auto projPnt3 = gp_Pnt(XPoint, YPoint, ZPoint);
+			//distance 
+			gp_Vec d(myCubePnt2, projPnt3);
+			gp_Vec v(Vx, Vy, Vz);
+			//angle<v,d>
+			Standard_Real angleV_D = v.Angle(d);
+			//project d to h
+			Standard_Real d_to_h = d.Magnitude()*std::tan(angleV_D);
+
+			//the 3rd point
+			auto cubePnt3 = gp_Pnt(myCubePnt2.X(), myCubePnt2.Y(), d_to_h);
+
+			TopoDS_Shape aBox = BRepPrimAPI_MakeBox(myCubePnt1, cubePnt3);
+			myCurrentShape = new AIS_Shape(aBox);
+
+			myContext->Display(myCurrentShape, true);
+			myContext->Deactivate(myCurrentShape);
+		}
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -1072,30 +1220,6 @@ void View::DrawRectangle(const int MinX, const int MinY,
 		//myRectBand->show();
 	}
 }
-
-//create draw actions
-void View::initDrawActions()
-{
-	OccDocQt * parentOccDocQt = (OccDocQt *)((QFrame *)parent()->parent());
-	QToolBar* aToolBar = parentOccDocQt->addToolBar(tr("Draw Optiongs"));
-	myDrawActions = new QList<QAction*>();
-
-	QAction* aAction;
-	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWLINE")), QObject::tr("MNU_TOOL_DRAWLINE"), this);
-	aAction->setToolTip(QObject::tr("TBR_DRAWLINE"));
-	aAction->setStatusTip(QObject::tr("TBR_DRAWLINE"));
-	connect(aAction, SIGNAL(triggered()), this, SLOT(drawLine()));
-	myDrawActions->insert(DrawLineId, aAction);
-
-	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWPOINT")), QObject::tr("MNU_TOOL_DRAWPOINT"), this);
-	aAction->setToolTip(QObject::tr("TBR_DRAWPOINT"));
-	aAction->setStatusTip(QObject::tr("TBR_DRAWPOINT"));
-	connect(aAction, SIGNAL(triggered()), this, SLOT(drawPoint()));
-	myDrawActions->insert(DrawLineId, aAction);
-
-	aToolBar->addActions(*myDrawActions);
-}
-
 
 void View::noActiveActions()
 {

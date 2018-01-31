@@ -21,7 +21,8 @@ protected:
 		CurAction3d_Nothing, CurAction3d_DynamicZooming,
 		CurAction3d_WindowZooming, CurAction3d_DynamicPanning,
 		CurAction3d_GlobalPanning, CurAction3d_DynamicRotation,
-		CurrentAction3d_DrawLine, CurrentAction3d_DrawPoint
+		CurrentAction3d_DrawLine, CurrentAction3d_DrawPoint,
+		CurrentAction3d_DrawCube0, CurrentAction3d_DrawCube1, CurrentAction3d_DrawCube2
 	};
 
 public:
@@ -34,7 +35,7 @@ public:
 
 	enum DrawAction
 	{
-		DrawLineId,DrawPiontId
+		DrawLineId,DrawPiontId, DrawCubeId
 	};
 
 	View(Handle(AIS_InteractiveContext) theContext, QWidget* parent);
@@ -101,6 +102,7 @@ signals:
 
 	void						  drawLine();
 	void						  drawPoint();
+	void						  drawCube();
 
 protected:
 	virtual void                  paintEvent(QPaintEvent*);
@@ -162,5 +164,7 @@ private:
 	QRubberBand*                    myRectBand; //!< selection rectangle rubber band
 
 	Handle(AIS_Shape)				myCurrentShape;	//drawing shape
+	gp_Pnt							myCubePnt1;		//drawing a cube
+	gp_Pnt							myCubePnt2;		//drawing a cube
 };
 
