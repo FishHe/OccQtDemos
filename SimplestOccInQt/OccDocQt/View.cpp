@@ -23,6 +23,10 @@
 #include <Geom_Axis2Placement.hxx>
 #include <AIS_Point.hxx>
 #include <Geom_CartesianPoint.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakePolygon.hxx>
+
 
 #include <OcctWindow.h>
 
@@ -51,7 +55,8 @@ View::View(Handle(AIS_InteractiveContext) theContext, QWidget* parent)
 	myIsAntialiasingEnabled(false),
 	myViewActions(0),
 	myRaytraceActions(0),
-	myBackMenu(NULL)
+	myBackMenu(NULL),
+	myPolyPnts(NULL)
 {
 #if !defined(_WIN32) && (!defined(__APPLE__) || defined(MACOSX_USE_GLX)) && QT_VERSION < 0x050000
 	XSynchronize(x11Info().display(), true);
@@ -242,6 +247,18 @@ void View::drawPoint()
 void View::drawCube()
 {
 	myCurrentMode = CurrentAction3d_DrawCube0;
+}
+
+void View::drawPoly()
+{
+	myCurrentMode = CurrentAction3d_DrawPoly;
+}
+
+void View::changeDisplayMode()
+{
+	if(myContext->DisplayMode()== AIS_DisplayMode::AIS_WireFrame)
+	myContext->SetDisplayMode(AIS_DisplayMode::AIS_Shaded, true);
+	else myContext->SetDisplayMode(AIS_DisplayMode::AIS_WireFrame, true);
 }
 
 void View::SetRaytracedShadows(bool theState)
@@ -531,7 +548,11 @@ void View::initViewActions()
 	ag->addAction(a);
 	myViewActions->insert(ViewHlrOnId, a);
 
-
+	a = new QAction(QPixmap(QObject::tr("ICON_TOOL_CHANGEDSPMODE")), QObject::tr("MNU_TOOL_CHANGEDSPMODE"), this);
+	a->setToolTip(QObject::tr("TBR_CHANGEDSPMODE"));
+	a->setStatusTip(QObject::tr("TBR_CHANGEDSPMODE"));
+	connect(a, SIGNAL(triggered()), this, SLOT(changeDisplayMode()));
+	myViewActions->insert(ViewChangeDisplayModeId, a);
 }
 
 void View::initRaytraceActions()
@@ -584,25 +605,82 @@ void View::initDrawActions()
 	myDrawActions = new QList<QAction*>();
 
 	QAction* aAction;
+
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWPOINT")), QObject::tr("MNU_TOOL_DRAWPOINT"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWPOINT"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWPOINT"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawPoint()));
+	myDrawActions->insert(DrawPiontId, aAction);
+
 	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWLINE")), QObject::tr("MNU_TOOL_DRAWLINE"), this);
 	aAction->setToolTip(QObject::tr("TBR_DRAWLINE"));
 	aAction->setStatusTip(QObject::tr("TBR_DRAWLINE"));
 	connect(aAction, SIGNAL(triggered()), this, SLOT(drawLine()));
 	myDrawActions->insert(DrawLineId, aAction);
 
-	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWPOINT")), QObject::tr("MNU_TOOL_DRAWPOINT"), this);
-	aAction->setToolTip(QObject::tr("TBR_DRAWPOINT"));
-	aAction->setStatusTip(QObject::tr("TBR_DRAWPOINT"));
-	connect(aAction, SIGNAL(triggered()), this, SLOT(drawPoint()));
-	myDrawActions->insert(DrawLineId, aAction);
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWPOLY")), QObject::tr("MNU_TOOL_DRAWPOLY"), this);
+	aAction->setToolTip(QObject::tr("TBR_DRAWPOLY"));
+	aAction->setStatusTip(QObject::tr("TBR_DRAWPOLY"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(drawPoly()));
+	myDrawActions->insert(DrawPolyId, aAction);
 
 	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_DRAWCUBE")), QObject::tr("MNU_TOOL_DRAWCUBE"), this);
 	aAction->setToolTip(QObject::tr("TBR_DRAWCUBE"));
 	aAction->setStatusTip(QObject::tr("TBR_DRAWCUBE"));
 	connect(aAction, SIGNAL(triggered()), this, SLOT(drawCube()));
-	myDrawActions->insert(DrawLineId, aAction);
+	myDrawActions->insert(DrawCubeId, aAction);
 
 	aToolBar->addActions(*myDrawActions);
+}
+
+
+void View::onLButtonDblClick(const int nFlags, const QPoint point)
+{
+	switch (myCurrentMode)
+	{
+	case View::CurAction3d_Nothing:
+		break;
+	case View::CurAction3d_DynamicZooming:
+		break;
+	case View::CurAction3d_WindowZooming:
+		break;
+	case View::CurAction3d_DynamicPanning:
+		break;
+	case View::CurAction3d_GlobalPanning:
+		break;
+	case View::CurAction3d_DynamicRotation:
+		break;
+	case View::CurrentAction3d_DrawLine:
+		break;
+	case View::CurrentAction3d_DrawPoint:
+		break;
+	case View::CurrentAction3d_DrawCube0:
+		break;
+	case View::CurrentAction3d_DrawCube1:
+		break;
+	case View::CurrentAction3d_DrawCube2:
+		break;
+	case View::CurrentAction3d_DrawPoly:
+	{
+		BRepBuilderAPI_MakePolygon aPolyMaker = BRepBuilderAPI_MakePolygon();
+		for (int i = 0; i < myPolyPnts->length(); i++)
+		{
+			aPolyMaker.Add(myPolyPnts->at(i));
+		}
+		aPolyMaker.Add(myPolyPnts->first());
+		TopoDS_Shape aPoly = aPolyMaker.Shape();
+
+		if (!myCurrentShape.IsNull())  myContext->Remove(myCurrentShape,false);
+		myCurrentShape = NULL;
+		myContext->Display(new AIS_Shape( aPoly), true);
+		myCurrentMode = CurAction3d_Nothing;
+
+		myPolyPnts = NULL;
+	}
+		break;
+	default:
+		break;
+	}
 }
 
 void View::mousePressEvent(QMouseEvent* e)
@@ -628,6 +706,12 @@ void View::mouseReleaseEvent(QMouseEvent* e)
 void View::mouseMoveEvent(QMouseEvent* e)
 {
 	onMouseMove(e->buttons(), e->pos());
+}
+
+void View::mouseDoubleClickEvent(QMouseEvent* e)
+{
+	if (e->button() == Qt::LeftButton)
+		onLButtonDblClick((e->buttons() | e->modifiers()), e->pos());
 }
 
 void View::activateCursor(const CurrentAction3d mode)
@@ -707,9 +791,13 @@ void View::onLButtonDown(const int/*Qt::MouseButtons*/ nFlags, const QPoint poin
 			XPoint = X + t*Vx;
 			YPoint = Y + t*Vy;
 
-			Handle(Geom_Point) anGPnt = new Geom_CartesianPoint(gp_Pnt(XPoint, YPoint, ZPoint));
-			Handle(AIS_Point) anAISPnt = new AIS_Point(anGPnt);
-			myContext->Display(anAISPnt, true);
+			//Handle(Geom_Point) anGPnt = new Geom_CartesianPoint(gp_Pnt(XPoint, YPoint, ZPoint));
+			//Handle(AIS_Point) anAISPnt = new AIS_Point(anGPnt);
+			//myContext->Display(anAISPnt, true);
+
+			TopoDS_Shape aPoint = BRepBuilderAPI_MakeVertex(gp_Pnt(XPoint, YPoint, ZPoint));
+			Handle(AIS_Shape) anAISShape = new AIS_Shape(aPoint);
+			myContext->Display(anAISShape, true);
 		}
 			break;
 		case CurrentAction3d_DrawCube0:
@@ -747,8 +835,21 @@ void View::onLButtonDown(const int/*Qt::MouseButtons*/ nFlags, const QPoint poin
 		}
 			break;
 		case CurrentAction3d_DrawCube2:
+			break;
+		case CurrentAction3d_DrawPoly:
 		{
-			
+			if (myPolyPnts == NULL) myPolyPnts = new QList<gp_Pnt>();
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmin, myYmin, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			myPolyPnts->append(gp_Pnt(XPoint, YPoint, ZPoint));
 		}
 			break;
 		default:
@@ -857,6 +958,8 @@ void View::onLButtonUp(Qt::MouseButtons nFlags, const QPoint point)
 		myCurrentShape = NULL;
 		noActiveActions();
 	}
+		break;
+	case CurrentAction3d_DrawPoly:
 		break;
 	default:
 		throw Standard_Failure(" incompatible Current Mode ");
@@ -970,6 +1073,8 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 			break;
 		case CurrentAction3d_DrawCube2:
 			break;
+		case CurrentAction3d_DrawPoly:
+			break;
 		default:
 			throw Standard_Failure("incompatible Current Mode");
 			break;
@@ -1050,6 +1155,42 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 
 			myContext->Display(myCurrentShape, true);
 			myContext->Deactivate(myCurrentShape);
+		}
+			break;
+		case CurrentAction3d_DrawPoly:
+		{
+			if (!myCurrentShape.IsNull()) myContext->Remove(myCurrentShape, true);
+			if (myPolyPnts == NULL ) return;
+			if (myPolyPnts->length() == 0) return;
+
+			gp_Pnt lastPnt = myPolyPnts->last();
+
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmax, myYmax, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			XPoint = XPoint == lastPnt.X() ? XPoint + FLT_EPSILON : XPoint;
+			YPoint = YPoint == lastPnt.Y() ? YPoint + FLT_EPSILON : YPoint;
+			ZPoint = ZPoint == lastPnt.Z() ? ZPoint + FLT_EPSILON : ZPoint;
+
+			TopoDS_Wire aWire;
+			for (int i=0;i<myPolyPnts->length()-1;i++)
+			{
+				TopoDS_Edge anEdge = BRepBuilderAPI_MakeEdge(myPolyPnts->at(i), myPolyPnts->at(i+1));
+				aWire = BRepBuilderAPI_MakeWire(aWire, anEdge);
+			}
+			TopoDS_Edge curEdge = BRepBuilderAPI_MakeEdge(myPolyPnts->last(), 
+				gp_Pnt(XPoint, YPoint, ZPoint));
+			aWire = BRepBuilderAPI_MakeWire(aWire, curEdge);
+
+			myCurrentShape = new AIS_Shape(aWire);
+			myContext->Display(myCurrentShape, true);
 		}
 			break;
 		default:

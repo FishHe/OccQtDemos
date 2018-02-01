@@ -22,20 +22,22 @@ protected:
 		CurAction3d_WindowZooming, CurAction3d_DynamicPanning,
 		CurAction3d_GlobalPanning, CurAction3d_DynamicRotation,
 		CurrentAction3d_DrawLine, CurrentAction3d_DrawPoint,
-		CurrentAction3d_DrawCube0, CurrentAction3d_DrawCube1, CurrentAction3d_DrawCube2
+		CurrentAction3d_DrawCube0, CurrentAction3d_DrawCube1, CurrentAction3d_DrawCube2,
+		CurrentAction3d_DrawPoly
 	};
 
 public:
 	enum ViewAction {
 		ViewFitAllId, ViewFitAreaId, ViewZoomId, ViewPanId, ViewGlobalPanId,
 		ViewFrontId, ViewBackId, ViewTopId, ViewBottomId, ViewLeftId, ViewRightId,
-		ViewAxoId, ViewRotationId, ViewResetId, ViewHlrOffId, ViewHlrOnId
+		ViewAxoId, ViewRotationId, ViewResetId, ViewHlrOffId, ViewHlrOnId,
+		ViewChangeDisplayModeId
 	};
 	enum RaytraceAction { ToolRaytracingId, ToolShadowsId, ToolReflectionsId, ToolAntialiasingId };
 
 	enum DrawAction
 	{
-		DrawLineId,DrawPiontId, DrawCubeId
+		DrawPiontId, DrawLineId, DrawPolyId, DrawCubeId
 	};
 
 	View(Handle(AIS_InteractiveContext) theContext, QWidget* parent);
@@ -103,6 +105,8 @@ signals:
 	void						  drawLine();
 	void						  drawPoint();
 	void						  drawCube();
+	void						  drawPoly();
+	void						  changeDisplayMode();
 
 protected:
 	virtual void                  paintEvent(QPaintEvent*);
@@ -110,6 +114,7 @@ protected:
 	virtual void                  mousePressEvent(QMouseEvent*);
 	virtual void                  mouseReleaseEvent(QMouseEvent*);
 	virtual void                  mouseMoveEvent(QMouseEvent*);
+	virtual void				  mouseDoubleClickEvent(QMouseEvent *);
 
 	virtual void                  addItemInPopup(QMenu*);
 
@@ -126,6 +131,7 @@ protected:
 	virtual void                          onMButtonUp(Qt::MouseButtons nFlags, const QPoint point);
 	virtual void                          onRButtonUp(Qt::MouseButtons nFlags, const QPoint point);
 	virtual void                          onMouseMove(Qt::MouseButtons nFlags, const QPoint point);
+	virtual void						  onLButtonDblClick(const int nFlags, const QPoint point);
 
 private:
 	void                          initCursors();
@@ -166,5 +172,6 @@ private:
 	Handle(AIS_Shape)				myCurrentShape;	//drawing shape
 	gp_Pnt							myCubePnt1;		//drawing a cube
 	gp_Pnt							myCubePnt2;		//drawing a cube
+	QList<gp_Pnt>*					myPolyPnts;		//drawing a Polygon
 };
 
