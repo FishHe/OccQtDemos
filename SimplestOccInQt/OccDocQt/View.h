@@ -7,6 +7,10 @@
 #include <AIS_InteractiveContext.hxx>
 #include <V3d_View.hxx>
 #include <AIS_Shape.hxx>
+#include <TopoDS_Face.hxx>
+#include <TopoDS_Wire.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopoDS_Shell.hxx>
 
 class TopoDS_Shape;
 class QRubberBand;
@@ -23,7 +27,7 @@ protected:
 		CurAction3d_GlobalPanning, CurAction3d_DynamicRotation,
 		CurrentAction3d_DrawLine, CurrentAction3d_DrawPoint,
 		CurrentAction3d_DrawCube0, CurrentAction3d_DrawCube1, CurrentAction3d_DrawCube2,
-		CurrentAction3d_DrawPoly
+		CurrentAction3d_DrawPoly, CurrentAction3d_Extrude
 	};
 
 public:
@@ -37,7 +41,7 @@ public:
 
 	enum DrawAction
 	{
-		DrawPiontId, DrawLineId, DrawPolyId, DrawCubeId
+		DrawPiontId, DrawLineId, DrawPolyId, DrawCubeId, ExtrudeId
 	};
 
 	View(Handle(AIS_InteractiveContext) theContext, QWidget* parent);
@@ -107,6 +111,7 @@ signals:
 	void						  drawCube();
 	void						  drawPoly();
 	void						  changeDisplayMode();
+	void						  extrude();
 
 protected:
 	virtual void                  paintEvent(QPaintEvent*);
@@ -173,5 +178,8 @@ private:
 	gp_Pnt							myCubePnt1;		//drawing a cube
 	gp_Pnt							myCubePnt2;		//drawing a cube
 	QList<gp_Pnt>*					myPolyPnts;		//drawing a Polygon
+	TopoDS_Wire						myExtrudeWire;
+	Handle(AIS_Shape)				myExtrudePrism;
+	gp_Pnt							myExtrudeCenter;
 };
 

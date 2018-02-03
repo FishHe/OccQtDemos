@@ -20,12 +20,26 @@
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <AIS_Trihedron.hxx>
+#include <AIS_Manipulator.hxx>
 #include <Geom_Axis2Placement.hxx>
 #include <AIS_Point.hxx>
 #include <Geom_CartesianPoint.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <BRepBuilderAPI_MakeShape.hxx>
+#include <AIS_Axis.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
+#include <Geom_Axis1Placement.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+#include <Graphic3d_TransformPers.hxx>
+#include <ShapeBuild_ReShape.hxx>
+#include <BRepTools_ReShape.hxx>
+#include <TopExp.hxx>
+#include <BRep_Builder.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
 
 
 #include <OcctWindow.h>
@@ -252,6 +266,112 @@ void View::drawCube()
 void View::drawPoly()
 {
 	myCurrentMode = CurrentAction3d_DrawPoly;
+}
+
+void View::extrude()
+{
+	auto firstObj = myContext->FirstSelectedObject();
+	
+	if (firstObj.IsNull()) return;
+
+	Handle(Standard_Type) typeShape = firstObj->DynamicType();
+
+	if (typeShape != STANDARD_TYPE(AIS_Shape)) return;
+
+	auto hAISShape = Handle(AIS_Shape)::DownCast(firstObj);
+
+	auto aShape = hAISShape->Shape();
+
+	//for (TopExp_Explorer aFaceExplorer(myExtrudeShape, TopAbs_FACE);
+	//	aFaceExplorer.More(); aFaceExplorer.Next())
+	//{
+	//	myExtrudeFace = TopoDS::Face(aFaceExplorer.Current());
+	//}
+
+	//for (TopExp_Explorer aWireExplorer(myExtrudeShape, TopAbs_ShapeEnum::TopAbs_WIRE);
+	//	aWireExplorer.More(); aWireExplorer.Next())
+	//{
+	//	myExtrudeWire = TopoDS::Wire(aWireExplorer.Current());
+	//}
+
+	for (TopExp_Explorer aEDGEExplorer(aShape, TopAbs_ShapeEnum::TopAbs_WIRE);
+		aEDGEExplorer.More(); aEDGEExplorer.Next())
+	{
+		myExtrudeWire = TopoDS::Wire(aEDGEExplorer.Current());
+	}
+
+	gp_Pnt barycenter;
+	int vertexNum = 0;
+	for (TopExp_Explorer aVertexExplorer(myExtrudeWire, TopAbs_ShapeEnum::TopAbs_VERTEX);
+		aVertexExplorer.More(); aVertexExplorer.Next())
+	{
+		TopoDS_Vertex aVertex = TopoDS::Vertex(aVertexExplorer.Current());
+		
+		vertexNum++;
+		auto ptnV = BRep_Tool::Pnt(aVertex);
+		barycenter.Translate(gp_Vec(ptnV.XYZ()));
+	}
+	barycenter.Scale(gp_Pnt(),1.0 / vertexNum);
+
+	myExtrudeCenter = barycenter;
+	
+	//Handle(Geom_Axis1Placement) anGA1P = new Geom_Axis1Placement(barycenter, gp_Dir(0,0,1.0));
+	//Handle(AIS_Axis) anAISAxis = new AIS_Axis(anGA1P);
+
+	//barycenter.Translate(gp_Vec(0, 0, 100));
+	//Handle(Geom_Axis2Placement) anGA2P = new Geom_Axis2Placement(myExtrudeCenter, gp_Dir(0, 0, 1), gp_Dir(1, 0, 0));
+
+	//Handle(AIS_Trihedron) anAISThd = new AIS_Trihedron(anGA2P);
+	//myContext->Display(anAISThd, true);
+
+	//TopoDS_Vertex v1 = BRepBuilderAPI_MakeVertex(gp_Pnt(0,0,0));
+	//TopoDS_Vertex v2 = BRepBuilderAPI_MakeVertex(gp_Pnt(100,100,100));
+	//TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(v1, v2);
+
+	//TopoDS_Vertex v3 = BRepBuilderAPI_MakeVertex(gp_Pnt(0, 500, 500));
+
+	//BRep_Builder builer;
+
+	//TopoDS_Compound cpd;
+	//
+	//
+
+	//auto testttt = TopExp::FirstVertex(edge,false);
+
+	//ShapeBuild_ReShape aReShape;
+	//aReShape.Replace(testttt, v3);
+	//auto test2 = aReShape.Apply(edge);
+	//
+
+	//Handle(AIS_Shape) hEdge = new AIS_Shape(test2);
+	//myContext->Display(hEdge, true);
+
+
+	//manipulator
+	{
+		//Handle(AIS_Manipulator) anAISMnplt = new AIS_Manipulator(gp_Ax2(myExtrudeCenter, gp_Dir(0, 0, 1), gp_Dir(1, 0, 0)));
+
+		//anAISMnplt->SetPart(0, AIS_ManipulatorMode::AIS_MM_Rotation, false);
+		//anAISMnplt->SetPart(1, AIS_ManipulatorMode::AIS_MM_Rotation, false);
+		//anAISMnplt->SetPart(2, AIS_ManipulatorMode::AIS_MM_Rotation, false);
+
+		//anAISMnplt->SetPart(0, AIS_ManipulatorMode::AIS_MM_Scaling, false);
+		//anAISMnplt->SetPart(1, AIS_ManipulatorMode::AIS_MM_Scaling, false);
+		//anAISMnplt->SetPart(2, AIS_ManipulatorMode::AIS_MM_Scaling, false);
+
+		//AIS_Manipulator::OptionsForAttach ofa;
+		//ofa.SetEnableModes(false);
+
+		//anAISMnplt->Attach(hAISShape, ofa);
+		//anAISMnplt->EnableMode(AIS_MM_Translation);
+
+		//gp_Trsf tr;
+		//tr.SetTranslation(gp_Vec(0,0,500));
+
+		//anAISMnplt->Transform(tr);
+	}
+
+	myCurrentMode = CurrentAction3d_Extrude;
 }
 
 void View::changeDisplayMode()
@@ -630,6 +750,12 @@ void View::initDrawActions()
 	connect(aAction, SIGNAL(triggered()), this, SLOT(drawCube()));
 	myDrawActions->insert(DrawCubeId, aAction);
 
+	aAction = new QAction(QPixmap(QObject::tr("ICON_TOOL_EXTRUDE")), QObject::tr("MNU_TOOL_EXTRUDE"), this);
+	aAction->setToolTip(QObject::tr("TBR_EXTRUDE"));
+	aAction->setStatusTip(QObject::tr("TBR_EXTRUDE"));
+	connect(aAction, SIGNAL(triggered()), this, SLOT(extrude()));
+	myDrawActions->insert(ExtrudeId, aAction);
+
 	aToolBar->addActions(*myDrawActions);
 }
 
@@ -662,17 +788,26 @@ void View::onLButtonDblClick(const int nFlags, const QPoint point)
 		break;
 	case View::CurrentAction3d_DrawPoly:
 	{
-		BRepBuilderAPI_MakePolygon aPolyMaker = BRepBuilderAPI_MakePolygon();
-		for (int i = 0; i < myPolyPnts->length(); i++)
+		BRepBuilderAPI_MakeWire aWire;
+		
+		for (int i = 0; i < myPolyPnts->length()-1; i++)
 		{
-			aPolyMaker.Add(myPolyPnts->at(i));
+			aWire.Add(BRepBuilderAPI_MakeEdge(myPolyPnts->at(i), myPolyPnts->at(i+1)));
 		}
-		aPolyMaker.Add(myPolyPnts->first());
-		TopoDS_Shape aPoly = aPolyMaker.Shape();
+		aWire.Add(BRepBuilderAPI_MakeEdge(myPolyPnts->first(), myPolyPnts->last()));
+		TopoDS_Shape aFace = BRepBuilderAPI_MakeFace(aWire);
+
+		//BRepBuilderAPI_MakePolygon aPolyMaker = BRepBuilderAPI_MakePolygon();
+		//for (int i = 0; i < myPolyPnts->length(); i++)
+		//{
+		//	aPolyMaker.Add(myPolyPnts->at(i));
+		//}
+		//aPolyMaker.Add(myPolyPnts->first());
+		//TopoDS_Shape aPoly = aPolyMaker.Shape();
 
 		if (!myCurrentShape.IsNull())  myContext->Remove(myCurrentShape,false);
 		myCurrentShape = NULL;
-		myContext->Display(new AIS_Shape( aPoly), true);
+		myContext->Display(new AIS_Shape(aFace), true);
 		myCurrentMode = CurAction3d_Nothing;
 
 		myPolyPnts = NULL;
@@ -852,6 +987,15 @@ void View::onLButtonDown(const int/*Qt::MouseButtons*/ nFlags, const QPoint poin
 			myPolyPnts->append(gp_Pnt(XPoint, YPoint, ZPoint));
 		}
 			break;
+		case CurrentAction3d_Extrude:
+		{
+			////如果不为空 删除过去的
+			//if (!myExtrudePrism.IsNull()) myContext->Remove(myExtrudePrism, false);
+			myContext->Deactivate(myExtrudePrism);
+			myExtrudePrism = NULL;
+			myCurrentMode = CurAction3d_Nothing;
+		}
+			break;
 		default:
 			throw Standard_Failure("incompatible Current Mode");
 			break;
@@ -960,6 +1104,8 @@ void View::onLButtonUp(Qt::MouseButtons nFlags, const QPoint point)
 	}
 		break;
 	case CurrentAction3d_DrawPoly:
+		break;
+	case CurrentAction3d_Extrude:
 		break;
 	default:
 		throw Standard_Failure(" incompatible Current Mode ");
@@ -1074,6 +1220,8 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 		case CurrentAction3d_DrawCube2:
 			break;
 		case CurrentAction3d_DrawPoly:
+			break;
+		case CurrentAction3d_Extrude:
 			break;
 		default:
 			throw Standard_Failure("incompatible Current Mode");
@@ -1191,6 +1339,43 @@ void View::onMouseMove(Qt::MouseButtons nFlags, const QPoint point)
 
 			myCurrentShape = new AIS_Shape(aWire);
 			myContext->Display(myCurrentShape, true);
+		}
+			break;
+
+		case CurrentAction3d_Extrude:
+		{
+			Standard_Real X, Y, Z, Vx, Vy, Vz;
+			myView->ConvertWithProj(myXmax, myYmax, X, Y, Z, Vx, Vy, Vz);
+			Standard_Real t = 0;
+
+			Standard_Real XPoint, YPoint, ZPoint;
+			ZPoint = 0;
+			if (Vz != ZPoint) t = (ZPoint - Z) / Vz;
+			XPoint = X + t*Vx;
+			YPoint = Y + t*Vy;
+
+			//current cursor proj to the ref plane
+			auto projPnt = gp_Pnt(XPoint, YPoint, ZPoint);
+			//distance 
+			gp_Vec d(myExtrudeCenter, projPnt);
+			gp_Vec v(Vx, Vy, Vz);
+			//angle<v,d>
+			Standard_Real angleV_D = v.Angle(d);
+			//project d to h
+			Standard_Real d_to_h = d.Magnitude()*std::tan(angleV_D);
+
+			//Prism Vec
+			gp_Vec prismVec(0, 0, d_to_h);
+
+			//如果不为空 删除过去的
+			if (!myExtrudePrism.IsNull()) myContext->Remove(myExtrudePrism,false);
+			//建立柱体
+			auto aPrism = BRepPrimAPI_MakePrism(myExtrudeWire, prismVec);
+			myExtrudePrism = new AIS_Shape(aPrism);
+			
+			myContext->Display(myExtrudePrism, true);
+			myContext->Deactivate(myExtrudePrism);
+
 		}
 			break;
 		default:
