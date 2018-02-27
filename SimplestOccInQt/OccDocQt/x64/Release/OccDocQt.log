@@ -1,8 +1,3 @@
-﻿  Moc'ing View.h...
-  ApplicationCommonWindow.cpp
-  moc_View.cpp
-  OccDocQt.cpp
-  View.cpp
-  正在生成代码...
+﻿  View.cpp
     正在创建库 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\OccDocQt.lib 和对象 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\OccDocQt.exp
   OccDocQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Release\OccDocQt.exe
