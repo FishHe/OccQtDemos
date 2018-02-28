@@ -1,13 +1,3 @@
-﻿  Moc'ing SimplestOccInQt.h...
-  Uic'ing SimplestOccInQt.ui...
-  Moc'ing OccWidget.h...
-  moc_OccWidget.cpp
-  moc_SimplestOccInQt.cpp
-  main.cpp
-  OccWidget.cpp
-  OccWindow.cpp
-  SimplestOccInQt.cpp
-  正在生成代码...
-    正在创建库 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\SimplestOccInQt.lib 和对象 E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\SimplestOccInQt.exp
+﻿  SimplestOccInQt.cpp
   SimplestOccInQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\SimplestOccInQt.exe
   SimplestOccInQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\SimplestOccInQt.pdb (Full PDB)

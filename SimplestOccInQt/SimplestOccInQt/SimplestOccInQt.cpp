@@ -36,4 +36,5 @@ SimplestOccInQt::SimplestOccInQt(QWidget *parent)
 	TopoDS_Shape aShape = BRepPrimAPI_MakeBox(200, 200, 200).Solid();
 	Handle(AIS_Shape) anAisShape = new AIS_Shape(aShape);
 	myContext->Display(anAisShape,true);
+
 }

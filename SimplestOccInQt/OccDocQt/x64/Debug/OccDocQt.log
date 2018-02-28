@@ -1,3 +1,17 @@
-﻿  View.cpp
+﻿  Moc'ing View.h...
+  ApplicationCommonWindow.cpp
+  ApplicationWindow.cpp
+  DocumentCommon.cpp
+  moc_ApplicationCommonWindow.cpp
+  moc_ApplicationWindow.cpp
+  moc_DocumentCommon.cpp
+  moc_OccDocQt.cpp
+  moc_View.cpp
+  OccDocQt.cpp
+  Translate.cpp
+  View.cpp
+  main.cpp
+  正在生成代码...
+  qrc_OccDocQt.cpp
   OccDocQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\OccDocQt.exe
   OccDocQt.vcxproj -> E:\Windows\Documents\Repos\OccQtDemos\SimplestOccInQt\x64\Debug\OccDocQt.pdb (Full PDB)
