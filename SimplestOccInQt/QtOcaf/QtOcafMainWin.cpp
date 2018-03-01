@@ -160,6 +160,4 @@ void QtOcafMainWin::testMethord()
 
 	// Open a new command (for undo)
 	D->NewCommand();
-
-
 }
